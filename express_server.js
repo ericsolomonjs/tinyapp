@@ -27,6 +27,11 @@ app.get("/urls", (req, res) => {
   const templateVars = {urls: urlDatabase};
   res.render("urls_index", templateVars);
 });
+//POST method for updating long url in links
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect('/urls');
+});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
