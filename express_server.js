@@ -34,22 +34,30 @@ app.get("/urls", (req, res) => {
 app.get("/urls_new", (req, res) => {
   res.render("urls_new");
 });
-//POST new url route
-app.post("/urls/new", (req, res) => {
-  let fnLongURL = res.longURL;
-  console.log(req.body);
-  res.statusCode = 200;
-  urlDatabase[generateRandomString()] =  fnLongURL;
-})
+
+// //POST new url route
+// app.post("/urls/new", (req, res) => {
+//   let fnLongURL = res.longURL;
+//   res.statusCode = 200;
+//   urlDatabase[generateRandomString()] =  fnLongURL;
+// })
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  // console.log(req.body);
+  res.statusCode = 200;
+  let randomString = generateRandomString()
+  urlDatabase[randomString] = res.longURL; // store the new short and long urls
+  res.redirect("/urls/"+randomString); // redirect to the links page
 });
 
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
 });
 
 app.get("/hello", (req, res) => {
