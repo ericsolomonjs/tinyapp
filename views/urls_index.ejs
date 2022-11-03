@@ -6,7 +6,6 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-
     <!-- Bootstrap CSS -->
     <link
       rel="stylesheet"
@@ -25,19 +24,23 @@
           <tr>
             <th scope="col">Short URL ID</th>
             <th scope="col">Long URL</th>
+            <th scope="col">Delete</th>
           </tr>
         </thead>
         <tbody>
           <% for (let id in urls) { %>
             <tr>
-              <td><%= id %></td>
+              <td><%= id  %></td>
               <td><%= urls[id] %></td>
+              <td><form method="POST" action="/urls/<%= id  %>/delete">
+                <button type="submit" class="btn btn-primary" >Delete</button>
+              </form></td>
             </tr>
           <% } %>
         </tbody>
       </table>
       <h3>Create a new shortened URL here!</h3>
-      <a href="#">Click me</a>
+      <a href="/urls/new">Click me</a>
     </main>
     <!-- Bootstrap JS -->
     <script
