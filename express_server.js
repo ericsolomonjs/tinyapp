@@ -19,8 +19,48 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+
 app.get("/", (req, res) => {
   res.send("Hello!");
+});
+
+app.get("/register", (req, res) => {
+  let cookieUsername = "";
+  if (req.cookies) {
+    cookieUsername = req.cookies["username"]
+  }
+  console.log(req.cookies)
+  const templateVars = {
+    urls: urlDatabase,
+    username: cookieUsername
+  };
+  res.render("register", templateVars);
+});
+//POST /register // adds new email and pw to users /w randomID
+app.post("/register", (req, res) => {
+  if (email && password) {
+    let randomId = generateRandomString()
+    users[randomId] = { 
+      id : randomId,
+      email : email,
+      password : password
+    };
+  } else {
+    console.log("registration error: invalid input")
+  };
 });
 
 app.get("/urls.json", (req, res) => {
@@ -28,7 +68,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let cookieUsername = '';
+  let cookieUsername = "";
   if (req.cookies) {
     cookieUsername = req.cookies["username"]
   }
@@ -39,13 +79,12 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 });
-
 //POST method for updating long url in links
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect('/urls');
 });
-
+//GET /urls/new 
 app.get("/urls/new", (req, res) => {
   let cookieUsername = '';
   if (req.cookies !== undefined) {
@@ -54,21 +93,20 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {username: cookieUsername}
   res.render("urls_new", templateVars);
 });
-
-//POST new url route
+//POST new url route //adds longUrl to database;
 app.post("/urls/new", (req, res) => {
   let fnLongURL = res.longURL;
   res.statusCode = 200;
   urlDatabase[generateRandomString()] =  fnLongURL;
 });
-
+//Post /urls //creates a new shortUrl for input longUrl;
 app.post("/urls", (req, res) => {
   res.statusCode = 200;
   let randomString = generateRandomString();
   urlDatabase[randomString] = req.body.longURL; // store the new short and long urls
   res.redirect("/urls/"+randomString); // redirect to the link's page
 });
-
+//POST /login // check if same cookie then clear and login
 app.post("/login", (req, res) => {
   if (req.cookies) {
     res.clearCookie("username");
