@@ -14,15 +14,6 @@ function generateRandomString() {
   return Math.random().toString(36).slice(6);
 }
 
-function duplUserChecker (reqBodyEmail, usersObj) {
-  for (let user in usersObj) {
-    if (user.email === reqBodyEmail) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function getUserByEmail(email) {
   let fnUserObj = {} ;
   for (let user in users) {
@@ -71,12 +62,9 @@ app.get("/register", (req, res) => {
   }
   
 });
-
 //POST /register // adds new email and pw to users /w randomID
 app.post("/register", (req, res) => {
-  
-  
-  if (req.body.email && req.body.password && !duplUserChecker(req.body.email, users))  {
+  if (req.body.email && req.body.password && !getUserByEmail(req.body.email)) {
     let randomId = generateRandomString();
     users[randomId] = {
       id : randomId,
@@ -141,27 +129,26 @@ app.post("/urls", (req, res) => {
   urlDatabase[randomString] = req.body.longURL; // store the new short and long urls
   res.redirect("/urls/" + randomString); // redirect to the link's page
 });
-//POST /login // check if same cookie then clear and login
+//POST /login // fetch user by email and compare passwords before assign cookie
 app.post("/login", (req, res) => {
   const fetchedUser = getUserByEmail(req.body.email);
   if (fetchedUser && fetchedUser.password === req.body.password) {
     res.cookie("user_id", fetchedUser.user_id);
     res.redirect("/urls");
   } else {
+    res.statusCode = 403;
+    res.redirect("/login");
   }
 });
 
 app.get("/login", (req, res) => {
   if (req.cookies.user_id) {
     const templateVars = { 
-      user: users[req.cookies.user_id],
+      user: (users[req.cookies.user_id]),
     };
     res.render("login", templateVars);
-    
   } else {
-    const templateVars = { 
-      user: null,
-      };
+    const templateVars = { user: null };
     res.render("login", templateVars);
   } 
 });
