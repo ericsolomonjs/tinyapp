@@ -16,10 +16,10 @@
       <div class="card-header"></div>
       <div class="card-body">
         <% if (!user) { %>
-        <h5 class="card-title">Register</h5>
-        <form class="form-inline" action="/register" method="POST" >
+        <h5 class="card-title">Login</h5>
+        <form class="form-inline" action="/login" method="POST" >
           <div class="form-group mb-2">
-            <label for="longURL">Enter a URL:</label>
+            <label for="email">Email:</label>
             <input
               class="form-control"
               type="email"
@@ -27,6 +27,7 @@
               placeholder="example@host.com"
               style="width: 300px; margin: 1em"
             />
+            <label for="password">password:</label>
             <input
               class="form-control"
               type="password"
@@ -37,6 +38,11 @@
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </form>
+        <% } else { %>
+          <h5 class="card-title">Login</h5>
+          <form class="form-inline" action="/login" method="POST" >
+            <div class="form-group mb-2">
+              <label >Logged in as <%= user.email %></label>
         <% } %>
       </div>
     </div>
