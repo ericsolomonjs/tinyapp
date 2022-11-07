@@ -177,13 +177,14 @@ app.post("/urls", (req, res) => {
   urlDatabase[randomString] = {
     longURL: req.body.longURL,
     userID: req.session.user_id
-  }; // store the url object 
+  }; 
   res.redirect("/urls/" + randomString); 
   } else {
     res.send("<html><body>You must log in to create a new shortlink. <a href=\"/login\">Login</a></body></html>\n");
   } 
   // redirect to the link's page
 });
+
 //POST /login // fetch user by email and compare passwords before assign cookie
 app.post("/login", (req, res) => {
   const fetchedUser = getUserByEmail(req.body.email, users);
