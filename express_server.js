@@ -1,5 +1,7 @@
 const cookieParser = require("cookie-parser");
 const express = require("express");
+const bcrypt = require("bcryptjs");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -17,8 +19,8 @@ function generateRandomString() {
 function getUserByEmail(email) {
   let fnUserObj = {} ;
   for (let user in users) {
-    if (email === user.email) {
-      fnUserObj = user;
+    if (email === users[user].email) {
+      return users[user];
     }
   }
   return fnUserObj;
@@ -102,10 +104,11 @@ app.post("/register", (req, res) => {
   if (!req.cookies.user_id) {
     if (req.body.email && req.body.password && !getUserByEmail(req.body.email).email) {
       let randomId = generateRandomString();
+      let userHash = bcrypt.hashSync(req.body.password, 10);
       users[randomId] = {
         id : randomId,
         email : req.body.email,
-        password : req.body.password
+        password : userHash
       };
       //console.log("registered new user",  users[randomId]);//checked,works
       res.cookie("user_id", randomId);
@@ -188,8 +191,9 @@ app.post("/urls", (req, res) => {
 //POST /login // fetch user by email and compare passwords before assign cookie
 app.post("/login", (req, res) => {
   const fetchedUser = getUserByEmail(req.body.email);
-  if (fetchedUser && fetchedUser.password === req.body.password) {
-    res.cookie("user_id", fetchedUser.user_id);
+  const validPassword = bcrypt.compareSync(req.body.password, fetchedUser.password);
+  if (fetchedUser && validPassword) {
+    res.cookie("user_id", fetchedUser.id);
     res.redirect("/urls");
   } else {
     res.statusCode = 403;
