@@ -24,34 +24,14 @@ function generateRandomString() {
 
 //find urls by user ID
 function urlsForUser(id) {
-  console.log("ID log start of fn ", id);//checked, works
   let fnUsers = {};
   for (let url in urlDatabase) {
-    console.log('urlForUser(id) in for ', url)
-    console.log('url user id ', urlDatabase[url].userID)
     if ( urlDatabase[url].userID === id ) {
       fnUsers[url] = urlDatabase[url];
-      console.log('urlForUser(id) url added', fnUsers[url])
     }
   }
   return fnUsers                                                                                                                                                                                    ;
 }
-
-//function example for find object key by value
-// function findObjectsKey(obj, value) {
-//   return Object.keys(obj).find(key => obj[key] === value)
-// }
-
-// //return array of keys !
-// function findObjectsByUserID(fnUrlDatabase, fnUserID) {
-//   let keys = [];
-//   for (let forObj in fnUrlDatabase) {
-//     if (fnUrlDatabase.forObj.userID === fnUserID) {
-//       keys.push(forObj);
-//     }
-//   }
-//   return keys;
-// }
 
 const urlDatabase = {
   b6UTxQ: {
@@ -63,7 +43,6 @@ const urlDatabase = {
     userID: "aJ48lW"
   }
 };
-
 
 const users = {
   userRandomID: {
@@ -98,7 +77,7 @@ app.get("/register", (req, res) => {
 //POST /register // adds new email and pw to users /w randomID
 app.post("/register", (req, res) => {
   if (!req.session.user_id) {
-    if (req.body.email && req.body.password && !getUserByEmail(req.body.email).email, users) {
+    if ((getUserByEmail(req.body.email, users) === undefined) && req.body.email && req.body.password)  {
       let randomId = generateRandomString();
       let userHash = bcrypt.hashSync(req.body.password, 10);
       users[randomId] = {
@@ -106,7 +85,6 @@ app.post("/register", (req, res) => {
         email : req.body.email,
         password : userHash
       };
-      //console.log("registered new user",  users[randomId]);//checked,works
       req.session.user_id = randomId;
       res.redirect("/urls");
     } else {
@@ -129,7 +107,6 @@ app.get("/urls", (req, res) => {
       urls: usersUrls,
       user: users[req.session.user_id]
     };
-    console.log(templateVars);
     res.render("urls_index", templateVars);
   } else {
     res.send("<html><body>You must log in to see your shortlinks. <a href=\"/login\">Login</a></body></html>\n");
@@ -138,7 +115,6 @@ app.get("/urls", (req, res) => {
 
 //POST method for updating long url in links
 app.post("/urls/:id", (req, res) => {
-  console.log(req.body.longURL);
   urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls/");
 });
@@ -164,6 +140,7 @@ app.post("/urls/new", (req, res) => {
       userID: req.session.user_id
     };
   } else {
+    res.send("must be logged in to create tinyURL")
     console.log("must be logged in to create tinyURL")
     res.redirect("/login");
   }
@@ -245,7 +222,6 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  console.log(req.params.id);
   if (urlDatabase[req.params.id]) {
     const longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
