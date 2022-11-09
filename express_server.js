@@ -49,25 +49,23 @@ app.get("/register", (req, res) => {
 });
 //POST /register // adds new email and pw to users /w randomID
 app.post("/register", (req, res) => {
-  if (!req.session.user_id) {
-    if (req.body.email === '' && req.body.password === '') {
-      res.send("<html><body>Please enter a valid email and password <a href=\"/register\">Register</a></body></html>\n");
-    } else {
-      if ((getUserByEmail(req.body.email, users) === undefined) && req.body.email && req.body.password)  {
-        let randomId = generateRandomString();
-        let userHash = bcrypt.hashSync(req.body.password, 10);
-        users[randomId] = {
-          id : randomId,
-          email : req.body.email,
-          password : userHash
-        };
-        req.session.user_id = randomId;
-        res.redirect("/urls");
-      } else {
-        res.send("<html><body>Please enter a valid email and password <a href=\"/login\">Login</a></body></html>\n");
-        console.log("registration error: invalid input");
+  if (req.body.email === '' && req.body.password === '') {
+    res.send("<html><body>Please enter a valid email and password <a href=\"/register\">Register</a></body></html>\n");
+  } else if (!req.session.user_id) {
+    if (getUserByEmail(req.body.email, users) === undefined) {
+      let randomId = generateRandomString();
+      let userHash = bcrypt.hashSync(req.body.password, 10);
+      users[randomId] = {
+        id : randomId,
+        email : req.body.email,
+        password : userHash
       };
-    }
+      req.session.user_id = randomId;
+      res.redirect("/urls");
+    } else {
+      res.send("<html><body>Please enter a valid email and password <a href=\"/login\">Login</a></body></html>\n");
+      console.log("registration error: invalid input");
+    };
   }
 });
 
