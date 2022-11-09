@@ -88,13 +88,15 @@ app.get("/urls", (req, res) => {
 
 //POST method for updating long url in links
 app.post("/urls/:id", (req, res) => {
-  if (req.cookies.user_id && urlDatabase[req.params.id] === req.cookies.user_id) {
-    urlDatabase[req.params.id].longURL = req.body.longURL;
-    res.redirect("/urls/");
-  } else if (!req.cookies.user_id) {
+  if (req.session.user_id) {
+    if (urlDatabase[req.params.id].userID === req.session.user_id) {
+      urlDatabase[req.params.id].longURL = req.body.longURL;
+      res.redirect("/urls/");
+    } else {
+      res.send("<html><body>You do not have permission to view this link.</body></html>\n");
+    } 
+  } else {
     res.send("<html><body>You must log in to update URLs. <a href=\"/login\">Login</a></body></html>\n");
-  } else if (urlDatabase[req.params.id] !== req.cookies.user_id) {
-    res.send("<html><body>You don't own this link.</body></html>\n");
   }
 });
 
@@ -164,7 +166,7 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  req.session.user_id = '';
+  req.session = null
   res.redirect("/login");
 });
 
