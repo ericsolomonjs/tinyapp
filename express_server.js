@@ -1,11 +1,19 @@
+///////////////// REQUIRES /////////////////
 const cookieSession = require('cookie-session')
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const {getUserByEmail} = require("./helpers");
-
-const app = express();
+const {
+  generateRandomString,
+  getUserByEmail,
+  urlsForUser
+} = require("./assets");
+///////////////// RESOURCES /////////////////
+const users = new require("./assets").users;
+const urlDatabase = new require("./assets").urlDatabase;
+///////////////// NETWORKING /////////////////
 const PORT = 8080; // default port 8080
-
+///////////////// APP SETTINGS /////////////////
+const app = express();
 //set EJS as view engine
 app.set("view engine", "ejs");
 //middleware for decoding buffers
@@ -17,45 +25,7 @@ app.use(cookieSession({
   //options
   maxAge: 24 * 60 * 60 * 1000 //results in 24h maxAge
 }));
-
-function generateRandomString() {
-  return Math.random().toString(36).slice(6);
-}
-
-//find urls by user ID
-function urlsForUser(id) {
-  let fnUsers = {};
-  for (let url in urlDatabase) {
-    if ( urlDatabase[url].userID === id ) {
-      fnUsers[url] = urlDatabase[url];
-    }
-  }
-  return fnUsers                                                                                                                                                                                    ;
-}
-
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW"
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW"
-  }
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-};
+///////////////// ROUTES /////////////////
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -72,7 +42,6 @@ app.get("/register", (req, res) => {
     };
     res.render("register", templateVars);
   }
-
 });
 //POST /register // adds new email and pw to users /w randomID
 app.post("/register", (req, res) => {
@@ -90,7 +59,6 @@ app.post("/register", (req, res) => {
     } else {
       res.statusCode = 400;
       console.log("registration error: invalid input");
-      res.redirect("/register");
     };
 }
 });
@@ -98,7 +66,6 @@ app.post("/register", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
-
 //GET /urls // render urls index and send templatevars;
 app.get("/urls", (req, res) => {
   if (req.session.user_id) {
@@ -126,23 +93,22 @@ app.get("/urls/new", (req, res) => {
     templateVars = { user : users[req.session.user_id] };
     res.render("urls_new", templateVars);
   } else {
-    res.redirect("/login");
+    res.send("<html><body>You must log in to create shortlinks. <a href=\"/login\">Login</a></body></html>\n");
   }
 });
 
 //POST new url route //adds longUrl to database;
 app.post("/urls/new", (req, res) => {
   if (req.session.user_id) {
-    let fnLongURL = res.longURL;
+    let fnLongURL = req.body.longURL;
     res.statusCode = 200;
     urlDatabase[generateRandomString()] = {
       longURL: fnLongURL,
       userID: req.session.user_id
     };
   } else {
-    res.send("must be logged in to create tinyURL")
+    res.send("You must be logged in to create a tinyURL <a href=\"/login\">Login</a></body></html>\n")
     console.log("must be logged in to create tinyURL")
-    res.redirect("/login");
   }
   
 });
@@ -165,13 +131,16 @@ app.post("/urls", (req, res) => {
 //POST /login // fetch user by email and compare passwords before assign cookie
 app.post("/login", (req, res) => {
   const fetchedUser = getUserByEmail(req.body.email, users);
-  const validPassword = bcrypt.compareSync(req.body.password, fetchedUser.password);
-  if (fetchedUser && validPassword) {
-    req.session.user_id = fetchedUser.id;
-    res.redirect("/urls");
-  } else {
-    res.statusCode = 403;
-    res.redirect("/login");
+  let validPassword;
+  console.log("fetched user: ", fetchedUser);
+  if (fetchedUser) {
+    validPassword = bcrypt.compareSync(req.body.password, fetchedUser.password);
+    if (validPassword) {
+      req.session.user_id = fetchedUser.id;
+      res.redirect("/urls");
+    } else {
+      res.statusCode = 403;
+    }
   }
 });
 
