@@ -28,7 +28,7 @@ app.use(cookieSession({
 ///////////////// ROUTES /////////////////
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls")
 });
 //GET /register // renders register page
 app.get("/register", (req, res) => {
@@ -46,21 +46,25 @@ app.get("/register", (req, res) => {
 //POST /register // adds new email and pw to users /w randomID
 app.post("/register", (req, res) => {
   if (!req.session.user_id) {
-    if ((getUserByEmail(req.body.email, users) === undefined) && req.body.email && req.body.password)  {
-      let randomId = generateRandomString();
-      let userHash = bcrypt.hashSync(req.body.password, 10);
-      users[randomId] = {
-        id : randomId,
-        email : req.body.email,
-        password : userHash
-      };
-      req.session.user_id = randomId;
-      res.redirect("/urls");
+    if (req.body.email === '' && req.body.password === '') {
+      res.send("<html><body>Please enter a valid email and password <a href=\"/register\">Register</a></body></html>\n");
     } else {
-      res.statusCode = 400;
-      console.log("registration error: invalid input");
-    };
-}
+      if ((getUserByEmail(req.body.email, users) === undefined) && req.body.email && req.body.password)  {
+        let randomId = generateRandomString();
+        let userHash = bcrypt.hashSync(req.body.password, 10);
+        users[randomId] = {
+          id : randomId,
+          email : req.body.email,
+          password : userHash
+        };
+        req.session.user_id = randomId;
+        res.redirect("/urls");
+      } else {
+        res.send("<html><body>Please enter a valid email and password <a href=\"/login\">Login</a></body></html>\n");
+        console.log("registration error: invalid input");
+      };
+    }
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -139,8 +143,8 @@ app.post("/login", (req, res) => {
       req.session.user_id = fetchedUser.id;
       res.redirect("/urls");
     } else {
-      res.statusCode = 403;
-    }
+      res.send("<html><body>Please enter a valid email and password <a href=\"/login\">Login</a></body></html>\n");
+      }
   }
 });
 
