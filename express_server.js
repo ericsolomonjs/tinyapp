@@ -178,16 +178,17 @@ app.post("/urls/:id/delete", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     res.end("This link does not belong to you.")
-  } 
-
-  if (req.session.user_id && users[req.session.user_id])  {
+  } else if (!users[req.session.user_id]) {
+    res.send("This user doesn\' exist in the database!");
+  } else if (!urlDatabase[req.params.id]) {
+    res.send("This link doesn\' exist yet!");
+  } else if (urlDatabase[req.params.id].userID === req.session.user_id)  {
     const templateVars = { 
       user: users[req.session.user_id],
       id: req.params.id,
       longURL: urlDatabase[req.params.id].longURL
     };
     res.render("urls_show", templateVars);
-    
   } else {
     const templateVars = { 
       user: null,
