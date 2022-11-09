@@ -97,12 +97,11 @@ app.post("/urls/:id", (req, res) => {
 
 //GET /urls/new 
 app.get("/urls/new", (req, res) => {
-  let templateVars = {};
   if (req.session.user_id && users[req.session.user_id]) {
-    templateVars = { user : users[req.session.user_id] };
+    let templateVars = { user : users[req.session.user_id] };
     res.render("urls_new", templateVars);
   } else {
-    res.send("<html><body>You must log in to create shortlinks. <a href=\"/login\">Login</a></body></html>\n");
+    res.redirect("/login");
   }
 });
 
