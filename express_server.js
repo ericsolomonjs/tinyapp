@@ -144,7 +144,7 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   const fetchedUser = getUserByEmail(req.body.email, users);
   let validPassword;
-  console.log("fetched user: ", fetchedUser);
+  console.log("fetched user: ", fetchedUser);//checking fetched user in console
   if (fetchedUser) {
     validPassword = bcrypt.compareSync(req.body.password, fetchedUser.password);
     if (validPassword) {
