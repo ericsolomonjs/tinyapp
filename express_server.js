@@ -38,7 +38,6 @@ app.get("/", (req, res) => {
 //GET /register // renders register page
 app.get("/register", (req, res) => {
   if (req.session.user_id) {
-    req.session.user_id = '';
     res.redirect("/urls");
   } else {
     const templateVars = {
@@ -172,12 +171,17 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  if (req.session.user_id === urlDatabase[req.params.id].userID) {
-    delete urlDatabase[req.params.id];
-    res.redirect('/urls');
+  if (req.session.user_id) {
+    if (req.session.user_id === urlDatabase[req.params.id].userID) {
+      delete urlDatabase[req.params.id];
+      res.redirect('/urls');
+    } else {
+      res.send("<html><body>you may not delete links that dont belong to you. </body></html>\n")
+    }
   } else {
-    res.send("you may not delete links that dont belong to you")
+    res.send("<html><body>You have to be logged in to delete a url</body></html>\n");
   }
+
 });
 
 app.get("/urls/:id", (req, res) => {
