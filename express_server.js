@@ -91,8 +91,14 @@ app.get("/urls", (req, res) => {
 
 //POST method for updating long url in links
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id].longURL = req.body.longURL;
-  res.redirect("/urls/");
+  if (req.cookies.user_id && urlDatabase[req.params.id] === req.cookies.user_id) {
+    urlDatabase[req.params.id].longURL = req.body.longURL;
+    res.redirect("/urls/");
+  } else if (!req.cookies.user_id) {
+    res.send("<html><body>You must log in to update URLs. <a href=\"/login\">Login</a></body></html>\n");
+  } else if (urlDatabase[req.params.id] !== req.cookies.user_id) {
+    res.send("<html><body>You don't own this link.</body></html>\n");
+  }
 });
 
 //GET /urls/new 
@@ -123,13 +129,12 @@ app.post("/urls/new", (req, res) => {
 //Post /urls //creates a new shortUrl for input longUrl;
 app.post("/urls", (req, res) => {
   if (req.session.user_id) {
-    res.statusCode = 200;
-  let randomString = generateRandomString();
-  urlDatabase[randomString] = {
-    longURL: req.body.longURL,
-    userID: req.session.user_id
-  }; 
-  res.redirect("/urls/" + randomString); 
+    let randomString = generateRandomString();
+    urlDatabase[randomString] = {
+      longURL: req.body.longURL,
+      userID: req.session.user_id
+    }; 
+    res.redirect("/urls/" + randomString); 
   } else {
     res.send("<html><body>You must log in to create a new shortlink. <a href=\"/login\">Login</a></body></html>\n");
   } 
