@@ -150,9 +150,9 @@ app.post("/login", (req, res) => {
     if (validPassword) {
       req.session.user_id = fetchedUser.id;
       res.redirect("/urls");
-    } else {
-      res.send("<html><body>Please enter a valid email and password <a href=\"/login\">Login</a></body></html>\n");
-      }
+    } 
+  } else {
+    res.send("<html><body>Please enter a valid email and password <a href=\"/login\">Login</a></body></html>\n");
   }
 });
 
@@ -185,26 +185,31 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  if (urlDatabase[req.params.id].userID !== req.session.user_id) {
-    res.end("<html><body>This link does not belong to you.</body></html>\n")
-  } else if (!users[req.session.user_id]) {
-    res.send("<html><body>This user doesn\' exist in the database!</body></html>\n");
-  } else if (!urlDatabase[req.params.id]) {
-    res.send("<html><body>This link doesn\' exist yet!</body></html>\n");
-  } else if (urlDatabase[req.params.id].userID === req.session.user_id)  {
-    const templateVars = { 
-      user: users[req.session.user_id],
-      id: req.params.id,
-      longURL: urlDatabase[req.params.id].longURL
-    };
-    res.render("urls_show", templateVars);
+  //added corrective condition for invalid link crash
+  if (!(req.params.id in urlDatabase)) {
+    res.send("<html><body>Invalid link ID entered.</body></html>\n");
   } else {
-    const templateVars = { 
-      user: null,
-      id: null,
-      longURL: null
+    if (urlDatabase[req.params.id].userID !== req.session.user_id) {
+      res.end("<html><body>This link does not belong to you.</body></html>\n")
+    } else if (!users[req.session.user_id]) {
+      res.send("<html><body>This user doesn\' exist in the database!</body></html>\n");
+    } else if (!urlDatabase[req.params.id]) {
+      res.send("<html><body>This link doesn\' exist yet!</body></html>\n");
+    } else if (urlDatabase[req.params.id].userID === req.session.user_id)  {
+      const templateVars = { 
+        user: users[req.session.user_id],
+        id: req.params.id,
+        longURL: urlDatabase[req.params.id].longURL
       };
-    res.send("<html><body>You have to be logged in to use this functionality</body></html>\n");
+      res.render("urls_show", templateVars);
+    } else {
+      const templateVars = { 
+        user: null,
+        id: null,
+        longURL: null
+        };
+      res.send("<html><body>You have to be logged in to use this functionality</body></html>\n");
+    }
   }
 });
 
